@@ -11,15 +11,17 @@ type FSM[S, T constraints.Ordered] struct {
 	states       States[S, T]
 }
 
-type event[S, T constraints.Ordered] struct {
-	transition T
-	to         S
+type Event[S, T constraints.Ordered] struct {
+	Transition T
+	To         S
 }
 
-type States[S, T constraints.Ordered] map[S]struct {
-	events  []event[S, T]
-	onLeave func() // fired when leaving current state S
-	onEnter func() // fired when entering specific state S
+type States[S, T constraints.Ordered] map[S]*StateProperty[S, T]
+
+type StateProperty[S, T constraints.Ordered] struct {
+	Events  []Event[S, T]
+	OnLeave func() // fired when leaving current state S
+	OnEnter func() // fired when entering specific state S
 }
 
 func NewFSM[S, T constraints.Ordered](initState S, states States[S, T]) (*FSM[S, T], error) {
