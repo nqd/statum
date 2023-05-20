@@ -1,4 +1,4 @@
-package fsm
+package statum
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 type FSM[S, T constraints.Ordered] struct {
 	currentState S
-	states       states[S, T]
+	states       States[S, T]
 }
 
 type event[S, T constraints.Ordered] struct {
@@ -16,24 +16,28 @@ type event[S, T constraints.Ordered] struct {
 	to         S
 }
 
-type states[S, T constraints.Ordered] map[S]struct {
+type States[S, T constraints.Ordered] map[S]struct {
 	events  []event[S, T]
 	onLeave func() // fired when leaving current state S
 	onEnter func() // fired when entering specific state S
 }
 
-func NewFSM[S, T constraints.Ordered](initState S, states states[S, T]) (*FSM[S, T], error) {
+func NewFSM[S, T constraints.Ordered](initState S, states States[S, T]) (*FSM[S, T], error) {
 	return &FSM[S, T]{
 		currentState: initState,
-		states:       states[S, T],
+		states:       states,
 	}, nil
 }
 
 // Event sends a transition trigger to fsm
-func (f *FSM[S, T]) Event(ctx context.Context, t T) {}
+func (f *FSM[S, T]) Event(ctx context.Context, t T) error {
+	return nil
+}
 
 // Current returns the current fsm state
-func (f *FSM[S, T]) Current() S {}
+func (f *FSM[S, T]) Current() S {
+	return f.currentState
+}
 
 // SetState move fsm to given state, do not trigger any callback
 func (f *FSM[S, T]) SetState(s S) {}
