@@ -60,17 +60,24 @@ func TestFSM(t *testing.T) {
 		})
 
 		t.Run("should trigger callbacks", func(t *testing.T) {
-			count := 1
+			calledCount := 1
+			notCalled := 0
 
-			var liquidOnEnter statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
+			var liquidOnEnter statum.Callback[state, transaction] = func(ctx context.Context, e *statum.Event[state, transaction]) error {
+				notCalled += 1
+				return nil
 			}
-			var liquidOnLeave statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
-				count += 1
+			var liquidOnLeave statum.Callback[state, transaction] = func(ctx context.Context, e *statum.Event[state, transaction]) error {
+				calledCount += 1
+				return nil
 			}
-			var solidOnEnter statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
-				count *= 2
+			var solidOnEnter statum.Callback[state, transaction] = func(ctx context.Context, e *statum.Event[state, transaction]) error {
+				calledCount *= 2
+				return nil
 			}
-			var solidOnLeave statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
+			var solidOnLeave statum.Callback[state, transaction] = func(ctx context.Context, e *statum.Event[state, transaction]) error {
+				notCalled += 2
+				return nil
 			}
 
 			config := statum.NewStateMachineConfig[state, transaction]().
@@ -91,8 +98,9 @@ func TestFSM(t *testing.T) {
 			err = fsm.Fire(context.Background(), freeze)
 			assert.Nil(t, err)
 
-			// liquidOnLeave (count = 2) -> solidOnEnter
-			assert.Equal(t, 4, count)
+			// liquidOnLeave (calledCount = 2) -> solidOnEnter (calledCount = 4)
+			assert.Equal(t, 4, calledCount)
+			assert.Equal(t, 0, notCalled)
 		})
 	})
 

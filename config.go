@@ -24,7 +24,7 @@ type stateProperty[S, T constraints.Ordered] struct {
 	onEnter Callback[S, T] // fired when entering specific state S
 }
 
-type Callback[S, T constraints.Ordered] func(ctx context.Context, e Event[S, T])
+type Callback[S, T constraints.Ordered] func(ctx context.Context, e *Event[S, T]) error
 
 type StateOption[S, T constraints.Ordered] func(property *stateProperty[S, T])
 

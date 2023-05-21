@@ -40,7 +40,9 @@ func TestNewStateMachineConfig(t *testing.T) {
 	})
 
 	t.Run("AddState WithOnEnter", func(t *testing.T) {
-		var cb1 Callback[state, transaction] = func(ctx context.Context, e Event[state, transaction]) {}
+		var cb1 Callback[state, transaction] = func(ctx context.Context, e *Event[state, transaction]) error {
+			return nil
+		}
 		config := NewStateMachineConfig[state, transaction]()
 		config.AddState(liquid,
 			WithOnEnter(cb1))
@@ -50,7 +52,9 @@ func TestNewStateMachineConfig(t *testing.T) {
 	})
 
 	t.Run("AddState WithOnLeave", func(t *testing.T) {
-		var cb2 Callback[state, transaction] = func(ctx context.Context, e Event[state, transaction]) {}
+		var cb2 Callback[state, transaction] = func(ctx context.Context, e *Event[state, transaction]) error {
+			return nil
+		}
 		config := NewStateMachineConfig[state, transaction]()
 		config.AddState(liquid,
 			WithOnLeave(cb2))

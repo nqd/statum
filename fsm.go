@@ -38,7 +38,23 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 		return ErrInvalidTransaction
 	}
 
-	// todo: callback
+	event := &Event[S, T]{
+		FSM:         f,
+		Transaction: t,
+		Src:         f.currentState,
+		Dst:         nextState,
+	}
+	if f.config.states[f.currentState].onLeave != nil {
+		if err := f.config.states[f.currentState].onLeave(ctx, event); err != nil {
+			return err
+		}
+	}
+
+	if f.config.states[nextState].onEnter != nil {
+		if err := f.config.states[nextState].onEnter(ctx, event); err != nil {
+			return err
+		}
+	}
 
 	f.setCurrentState(nextState)
 
