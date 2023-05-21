@@ -11,11 +11,6 @@ type FSM[S, T constraints.Ordered] struct {
 	states       States[S, T]
 }
 
-type Event[S, T constraints.Ordered] struct {
-	Transition T
-	To         S
-}
-
 type States[S, T constraints.Ordered] map[S]*StateProperty[S, T]
 
 type StateProperty[S, T constraints.Ordered] struct {
@@ -41,7 +36,7 @@ func (f *FSM[S, T]) Current() S {
 	return f.currentState
 }
 
-// SetState move fsm to given state, do not trigger any callback
+// SetState move fsm to given state, do not trigger any Callback
 func (f *FSM[S, T]) SetState(s S) {}
 
 // Can returns true if
