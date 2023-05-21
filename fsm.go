@@ -2,33 +2,26 @@ package statum
 
 import (
 	"context"
+	"errors"
 
 	"golang.org/x/exp/constraints"
 )
 
+var (
+	ErrInvalidTransaction = errors.New("invalid transaction")
+	ErrNotRegisteredState = errors.New("state is not registered")
+)
+
 type FSM[S, T constraints.Ordered] struct {
 	currentState S
-	states       States[S, T]
+	config       *Config[S, T]
 }
 
-type States[S, T constraints.Ordered] map[S]*StateProperty[S, T]
-
-type StateProperty[S, T constraints.Ordered] struct {
-	Events  []Event[S, T]
-	OnLeave func() // fired when leaving current state S
-	OnEnter func() // fired when entering specific state S
-}
-
-func NewFSM[S, T constraints.Ordered](initState S, states States[S, T]) (*FSM[S, T], error) {
+func NewFSM[S, T constraints.Ordered](initState S, config *Config[S, T]) (*FSM[S, T], error) {
 	return &FSM[S, T]{
 		currentState: initState,
-		states:       states,
+		config:       config,
 	}, nil
-}
-
-// Event sends a transition trigger to fsm
-func (f *FSM[S, T]) Event(ctx context.Context, t T) error {
-	return nil
 }
 
 // Current returns the current fsm state
@@ -36,10 +29,38 @@ func (f *FSM[S, T]) Current() S {
 	return f.currentState
 }
 
-// SetState move fsm to given state, do not trigger any Callback
-func (f *FSM[S, T]) SetState(s S) {}
+// Fire sends a transition trigger to fsm
+func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
+	events := f.config.states[f.currentState].events
 
-// Can returns true if
-func (f *FSM[S, T]) Can(t T) bool {
-	return false
+	nextState, found := events[t]
+	if !found {
+		return ErrInvalidTransaction
+	}
+
+	// todo: callback
+
+	f.setCurrentState(nextState)
+
+	return nil
 }
+
+func (f *FSM[S, T]) setCurrentState(s S) {
+	f.currentState = s
+}
+
+// SetState move fsm to given state, do not trigger any Callback
+func (f *FSM[S, T]) SetState(s S) error {
+	_, found := f.config.states[s]
+	if !found {
+		return ErrNotRegisteredState
+	}
+
+	f.setCurrentState(s)
+	return nil
+}
+
+//// Can returns true if
+//func (f *FSM[S, T]) Can(t T) bool {
+//	return false
+//}
