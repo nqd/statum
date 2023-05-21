@@ -22,6 +22,7 @@ func TestFSM(t *testing.T) {
 		vaporize transaction = "vaporize"
 		condense transaction = "condense"
 	)
+
 	config := statum.NewStateMachineConfig[state, transaction]().
 		AddState(liquid,
 			statum.WithPermit(freeze, solid),
@@ -58,7 +59,41 @@ func TestFSM(t *testing.T) {
 			assert.Equal(t, gas, fsm.Current())
 		})
 
-		// todo: test trigger
+		t.Run("should trigger callbacks", func(t *testing.T) {
+			count := 1
+
+			var liquidOnEnter statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
+			}
+			var liquidOnLeave statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
+				count += 1
+			}
+			var solidOnEnter statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
+				count *= 2
+			}
+			var solidOnLeave statum.Callback[state, transaction] = func(ctx context.Context, e statum.Event[state, transaction]) {
+			}
+
+			config := statum.NewStateMachineConfig[state, transaction]().
+				AddState(liquid,
+					statum.WithPermit(freeze, solid),
+					statum.WithOnEnter(liquidOnEnter),
+					statum.WithOnLeave(liquidOnLeave),
+				).
+				AddState(solid,
+					statum.WithPermit(melt, liquid),
+					statum.WithOnEnter(solidOnEnter),
+					statum.WithOnLeave(solidOnLeave),
+				)
+
+			fsm, err := statum.NewFSM[state, transaction](liquid, config)
+			assert.Nil(t, err)
+
+			err = fsm.Fire(context.Background(), freeze)
+			assert.Nil(t, err)
+
+			// liquidOnLeave (count = 2) -> solidOnEnter
+			assert.Equal(t, 4, count)
+		})
 	})
 
 	t.Run("SetState", func(t *testing.T) {
