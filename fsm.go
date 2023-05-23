@@ -50,13 +50,13 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 		}
 	}
 
+	f.setCurrentState(nextState)
+
 	if f.config.states[nextState].onEnter != nil {
 		if err := f.config.states[nextState].onEnter(ctx, event); err != nil {
 			return err
 		}
 	}
-
-	f.setCurrentState(nextState)
 
 	return nil
 }
