@@ -16,9 +16,14 @@ type Event[S, T constraints.Ordered] struct {
 
 type Config[S, T constraints.Ordered] struct {
 	states map[S]*stateProperty[S, T]
+	// adding beforeTransaction
+	// adding afterTransaction
+	// adding enterState
+	// adding leaveState
 }
 
 type stateProperty[S, T constraints.Ordered] struct {
+	// todo map[T]S -> map[T]struct{S, after<Transaction>, before<Transaction>}
 	events  map[T]S
 	onLeave Callback[S, T] // fired when leaving current state S
 	onEnter Callback[S, T] // fired when entering specific state S
