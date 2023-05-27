@@ -33,7 +33,7 @@ func (f *FSM[S, T]) Current() S {
 func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 	events := f.config.states[f.currentState].events
 
-	nextState, found := events[t]
+	transactionProp, found := events[t]
 	if !found {
 		return ErrInvalidTransaction
 	}
@@ -42,18 +42,19 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 		FSM:         f,
 		Transaction: t,
 		Src:         f.currentState,
-		Dst:         nextState,
+		Dst:         transactionProp.toState,
 	}
-	if f.config.states[f.currentState].onLeave != nil {
-		if err := f.config.states[f.currentState].onLeave(ctx, event); err != nil {
+
+	if f.config.states[f.currentState].onLeaveState != nil {
+		if err := f.config.states[f.currentState].onLeaveState(ctx, event); err != nil {
 			return err
 		}
 	}
 
-	f.setCurrentState(nextState)
+	f.setCurrentState(transactionProp.toState)
 
-	if f.config.states[nextState].onEnter != nil {
-		if err := f.config.states[nextState].onEnter(ctx, event); err != nil {
+	if f.config.states[transactionProp.toState].onEnterState != nil {
+		if err := f.config.states[transactionProp.toState].onEnterState(ctx, event); err != nil {
 			return err
 		}
 	}

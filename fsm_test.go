@@ -25,12 +25,12 @@ func TestFSM(t *testing.T) {
 
 	config := statum.NewStateMachineConfig[state, transaction]().
 		AddState(liquid,
-			statum.WithPermit(freeze, solid),
-			statum.WithPermit(vaporize, gas)).
+			statum.WithPermit(freeze, solid, nil, nil),
+			statum.WithPermit(vaporize, gas, nil, nil)).
 		AddState(gas,
-			statum.WithPermit(condense, liquid)).
+			statum.WithPermit(condense, liquid, nil, nil)).
 		AddState(solid,
-			statum.WithPermit(melt, liquid))
+			statum.WithPermit(melt, liquid, nil, nil))
 
 	t.Run("Current", func(t *testing.T) {
 		t.Run("should return init state", func(t *testing.T) {
@@ -82,14 +82,14 @@ func TestFSM(t *testing.T) {
 
 			config := statum.NewStateMachineConfig[state, transaction]().
 				AddState(liquid,
-					statum.WithPermit(freeze, solid),
-					statum.WithOnEnter(liquidOnEnter),
-					statum.WithOnLeave(liquidOnLeave),
+					statum.WithPermit(freeze, solid, nil, nil),
+					statum.WithOnEnterState(liquidOnEnter),
+					statum.WithOnLeaveState(liquidOnLeave),
 				).
 				AddState(solid,
-					statum.WithPermit(melt, liquid),
-					statum.WithOnEnter(solidOnEnter),
-					statum.WithOnLeave(solidOnLeave),
+					statum.WithPermit(melt, liquid, nil, nil),
+					statum.WithOnEnterState(solidOnEnter),
+					statum.WithOnLeaveState(solidOnLeave),
 				)
 
 			fsm, err := statum.NewFSM[state, transaction](liquid, config)
@@ -145,7 +145,7 @@ func TestFSM(t *testing.T) {
 //		/*
 //				states := NewStateMachineConfig()
 //				states.AddState(state1, WithPermit(trigger1, state11), WithPermit(trigger1, state11,
-//				WithOnEnter(fu1), WithOnExit(fu2)
+//				WithOnEnterState(fu1), WithOnExit(fu2)
 //			)
 //					.Permit(trigger1, state11)
 //					.Permit(trigger2, state22)

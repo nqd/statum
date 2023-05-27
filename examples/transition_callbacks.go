@@ -30,11 +30,11 @@ func main() {
 		AddState(send,
 			statum.WithPermit(tfinish, sfinished),
 			statum.WithPermit(treset, sstart),
-			statum.WithOnEnter(enterEnd),
+			statum.WithOnEnterState(enterEnd),
 		).
 		AddState(sfinished,
 			statum.WithPermit(treset, sstart),
-			statum.WithOnLeave(leaveFinished),
+			statum.WithOnLeaveState(leaveFinished),
 		)
 
 	fsm, err := statum.NewFSM[state, transaction](sstart, config)

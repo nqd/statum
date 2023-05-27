@@ -22,11 +22,17 @@ type Config[S, T constraints.Ordered] struct {
 	// adding leaveState
 }
 
+type translationProperty[S, T constraints.Ordered] struct {
+	toState           S
+	afterTransaction  Callback[S, T]
+	beforeTransaction Callback[S, T]
+}
+
 type stateProperty[S, T constraints.Ordered] struct {
 	// todo map[T]S -> map[T]struct{S, after<Transaction>, before<Transaction>}
-	events  map[T]S
-	onLeave Callback[S, T] // fired when leaving current state S
-	onEnter Callback[S, T] // fired when entering specific state S
+	events       map[T]translationProperty[S, T]
+	onLeaveState Callback[S, T] // fired when leaving current state S
+	onEnterState Callback[S, T] // fired when entering specific state S
 }
 
 type Callback[S, T constraints.Ordered] func(ctx context.Context, e *Event[S, T]) error
@@ -44,7 +50,7 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 	property, found := c.states[s]
 	if !found {
 		property = &stateProperty[S, T]{
-			events: make(map[T]S, 0),
+			events: make(map[T]translationProperty[S, T], 0),
 		}
 		c.states[s] = property
 	}
@@ -56,20 +62,24 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 	return c
 }
 
-func WithPermit[S, T constraints.Ordered](t T, s S) StateOption[S, T] {
+func WithPermit[S, T constraints.Ordered](t T, s S, beforeTransaction Callback[S, T], afterTransaction Callback[S, T]) StateOption[S, T] {
 	return func(property *stateProperty[S, T]) {
-		property.events[t] = s
+		property.events[t] = translationProperty[S, T]{
+			toState:           s,
+			beforeTransaction: beforeTransaction,
+			afterTransaction:  afterTransaction,
+		}
 	}
 }
 
-func WithOnEnter[S, T constraints.Ordered](f Callback[S, T]) StateOption[S, T] {
+func WithOnEnterState[S, T constraints.Ordered](f Callback[S, T]) StateOption[S, T] {
 	return func(property *stateProperty[S, T]) {
-		property.onEnter = f
+		property.onEnterState = f
 	}
 }
 
-func WithOnLeave[S, T constraints.Ordered](f Callback[S, T]) StateOption[S, T] {
+func WithOnLeaveState[S, T constraints.Ordered](f Callback[S, T]) StateOption[S, T] {
 	return func(property *stateProperty[S, T]) {
-		property.onLeave = f
+		property.onLeaveState = f
 	}
 }
