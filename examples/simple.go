@@ -1,4 +1,4 @@
-//go:build ignore
+//--go:build ignore
 
 package main
 
@@ -21,8 +21,8 @@ func main() {
 	)
 
 	config := statum.NewStateMachineConfig[state, transaction]().
-		AddState(sopen, statum.WithPermit(tclose, sclosed)).
-		AddState(sclosed, statum.WithPermit(topen, sopen))
+		AddState(sopen, statum.WithPermit(tclose, sclosed, nil, nil)).
+		AddState(sclosed, statum.WithPermit(topen, sopen, nil, nil))
 	fsm, err := statum.NewFSM[state, transaction](sopen, config)
 	if err != nil {
 		log.Panicln("failed to create new fsm", err)

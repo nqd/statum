@@ -24,17 +24,15 @@ const (
 )
 
 func main() {
-
 	config := statum.NewStateMachineConfig[state, transaction]().
-		AddState(sstart, statum.WithPermit(trun, send)).
+		AddState(sstart, statum.WithPermit(trun, send, nil, nil)).
 		AddState(send,
-			statum.WithPermit(tfinish, sfinished),
-			statum.WithPermit(treset, sstart),
+			statum.WithPermit(tfinish, sfinished, nil, afterFinishTransaction),
+			statum.WithPermit(treset, sstart, nil, nil),
 			statum.WithOnEnterState(enterEnd),
 		).
 		AddState(sfinished,
-			statum.WithPermit(treset, sstart),
-			statum.WithOnLeaveState(leaveFinished),
+			statum.WithPermit(treset, sstart, nil, nil),
 		)
 
 	fsm, err := statum.NewFSM[state, transaction](sstart, config)
@@ -62,7 +60,7 @@ func enterEnd(ctx context.Context, e *statum.Event[state, transaction]) error {
 	return nil
 }
 
-func leaveFinished(ctx context.Context, e *statum.Event[state, transaction]) error {
+func afterFinishTransaction(ctx context.Context, e *statum.Event[state, transaction]) error {
 	if e.Src != send {
 		log.Panicf("Source should have been '%s', but was '%s'\n", send, e.Src)
 	}

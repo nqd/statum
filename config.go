@@ -29,8 +29,7 @@ type translationProperty[S, T constraints.Ordered] struct {
 }
 
 type stateProperty[S, T constraints.Ordered] struct {
-	// todo map[T]S -> map[T]struct{S, after<Transaction>, before<Transaction>}
-	events       map[T]translationProperty[S, T]
+	events       map[T]*translationProperty[S, T]
 	onLeaveState Callback[S, T] // fired when leaving current state S
 	onEnterState Callback[S, T] // fired when entering specific state S
 }
@@ -50,7 +49,9 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 	property, found := c.states[s]
 	if !found {
 		property = &stateProperty[S, T]{
-			events: make(map[T]translationProperty[S, T], 0),
+			events:       make(map[T]*translationProperty[S, T], 0),
+			onLeaveState: nilCallback[S, T],
+			onEnterState: nilCallback[S, T],
 		}
 		c.states[s] = property
 	}
@@ -64,10 +65,19 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 
 func WithPermit[S, T constraints.Ordered](t T, s S, beforeTransaction Callback[S, T], afterTransaction Callback[S, T]) StateOption[S, T] {
 	return func(property *stateProperty[S, T]) {
-		property.events[t] = translationProperty[S, T]{
+		btCb := beforeTransaction
+		if btCb == nil {
+			btCb = nilCallback[S, T]
+		}
+
+		atCb := afterTransaction
+		if atCb == nil {
+			atCb = nilCallback[S, T]
+		}
+		property.events[t] = &translationProperty[S, T]{
 			toState:           s,
-			beforeTransaction: beforeTransaction,
-			afterTransaction:  afterTransaction,
+			beforeTransaction: btCb,
+			afterTransaction:  atCb,
 		}
 	}
 }
@@ -82,4 +92,8 @@ func WithOnLeaveState[S, T constraints.Ordered](f Callback[S, T]) StateOption[S,
 	return func(property *stateProperty[S, T]) {
 		property.onLeaveState = f
 	}
+}
+
+func nilCallback[S, T constraints.Ordered](_ context.Context, _ *Event[S, T]) error {
+	return nil
 }

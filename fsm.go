@@ -31,7 +31,9 @@ func (f *FSM[S, T]) Current() S {
 
 // Fire sends a transition trigger to fsm
 func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
-	events := f.config.states[f.currentState].events
+	currentState := f.currentState
+
+	events := f.config.states[currentState].events
 
 	transactionProp, found := events[t]
 	if !found {
@@ -41,22 +43,27 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 	event := &Event[S, T]{
 		FSM:         f,
 		Transaction: t,
-		Src:         f.currentState,
+		Src:         currentState,
 		Dst:         transactionProp.toState,
 	}
 
-	if f.config.states[f.currentState].onLeaveState != nil {
-		if err := f.config.states[f.currentState].onLeaveState(ctx, event); err != nil {
-			return err
-		}
+	// within the current state, the callbacks sequence is: (a) beforeTransaction, (b) leaveState
+	if err := f.config.states[currentState].events[t].beforeTransaction(ctx, event); err != nil {
+		return err
+	}
+
+	if err := f.config.states[currentState].onLeaveState(ctx, event); err != nil {
+		return err
 	}
 
 	f.setCurrentState(transactionProp.toState)
 
-	if f.config.states[transactionProp.toState].onEnterState != nil {
-		if err := f.config.states[transactionProp.toState].onEnterState(ctx, event); err != nil {
-			return err
-		}
+	// after move to next state, the callbacks sequence is: (c) enterState, (d) afterTransaction
+	if err := f.config.states[transactionProp.toState].onEnterState(ctx, event); err != nil {
+		return err
+	}
+	if err := f.config.states[currentState].events[t].afterTransaction(ctx, event); err != nil {
+		return err
 	}
 
 	return nil

@@ -23,7 +23,7 @@ func TestNewStateMachineConfig(t *testing.T) {
 		condense transaction = "condense"
 	)
 
-	assertTranslationProperty := func(t *testing.T, t1 translationProperty[state, transaction], t2 translationProperty[state, transaction]) bool {
+	assertTranslationProperty := func(t *testing.T, t1 *translationProperty[state, transaction], t2 *translationProperty[state, transaction]) bool {
 		assert.Equal(t, t1.toState, t1.toState)
 		assertTwoFunsEqual(t, t1.afterTransaction, t2.afterTransaction)
 		assertTwoFunsEqual(t, t1.beforeTransaction, t2.beforeTransaction)
@@ -45,25 +45,25 @@ func TestNewStateMachineConfig(t *testing.T) {
 			AddState(solid,
 				WithPermit(melt, liquid, nil, nil))
 
-		assertTranslationProperty(t, translationProperty[state, transaction]{
+		assertTranslationProperty(t, &translationProperty[state, transaction]{
 			toState:           liquid,
-			afterTransaction:  nil,
-			beforeTransaction: nil,
+			afterTransaction:  nilCallback[state, transaction],
+			beforeTransaction: nilCallback[state, transaction],
 		}, config.states[solid].events[melt])
-		assertTranslationProperty(t, translationProperty[state, transaction]{
+		assertTranslationProperty(t, &translationProperty[state, transaction]{
 			toState:           gas,
-			afterTransaction:  nil,
-			beforeTransaction: nil,
+			afterTransaction:  nilCallback[state, transaction],
+			beforeTransaction: nilCallback[state, transaction],
 		}, config.states[liquid].events[vaporize])
-		assertTranslationProperty(t, translationProperty[state, transaction]{
+		assertTranslationProperty(t, &translationProperty[state, transaction]{
 			toState:           solid,
-			afterTransaction:  nil,
+			afterTransaction:  nilCallback[state, transaction],
 			beforeTransaction: cb1,
 		}, config.states[liquid].events[freeze])
-		assertTranslationProperty(t, translationProperty[state, transaction]{
+		assertTranslationProperty(t, &translationProperty[state, transaction]{
 			toState:           liquid,
 			afterTransaction:  cb2,
-			beforeTransaction: nil,
+			beforeTransaction: nilCallback[state, transaction],
 		}, config.states[gas].events[condense])
 	})
 
