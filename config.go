@@ -30,8 +30,8 @@ type translationProperty[S, T constraints.Ordered] struct {
 
 type stateProperty[S, T constraints.Ordered] struct {
 	events       map[T]*translationProperty[S, T]
-	onLeaveState Callback[S, T] // fired when leaving current state S
-	onEnterState Callback[S, T] // fired when entering specific state S
+	leaveStateCb Callback[S, T] // fired when leaving current state S
+	enterStateCb Callback[S, T] // fired when entering specific state S
 }
 
 type Callback[S, T constraints.Ordered] func(ctx context.Context, e *Event[S, T]) error
@@ -50,8 +50,8 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 	if !found {
 		property = &stateProperty[S, T]{
 			events:       make(map[T]*translationProperty[S, T], 0),
-			onLeaveState: nilCallback[S, T],
-			onEnterState: nilCallback[S, T],
+			leaveStateCb: nilCallback[S, T],
+			enterStateCb: nilCallback[S, T],
 		}
 		c.states[s] = property
 	}
@@ -84,13 +84,13 @@ func WithPermit[S, T constraints.Ordered](t T, s S, beforeTransaction Callback[S
 
 func WithOnEnterState[S, T constraints.Ordered](f Callback[S, T]) StateOption[S, T] {
 	return func(property *stateProperty[S, T]) {
-		property.onEnterState = f
+		property.enterStateCb = f
 	}
 }
 
 func WithOnLeaveState[S, T constraints.Ordered](f Callback[S, T]) StateOption[S, T] {
 	return func(property *stateProperty[S, T]) {
-		property.onLeaveState = f
+		property.leaveStateCb = f
 	}
 }
 

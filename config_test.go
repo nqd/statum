@@ -76,7 +76,7 @@ func TestNewStateMachineConfig(t *testing.T) {
 			WithOnEnterState(cb1))
 
 		assert.Equal(t, reflect.ValueOf(cb1).Pointer(),
-			reflect.ValueOf(config.states[liquid].onEnterState).Pointer())
+			reflect.ValueOf(config.states[liquid].enterStateCb).Pointer())
 	})
 
 	t.Run("AddState WithOnLeaveState", func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestNewStateMachineConfig(t *testing.T) {
 			WithOnLeaveState(cb2))
 
 		assert.Equal(t, reflect.ValueOf(cb2).Pointer(),
-			reflect.ValueOf(config.states[liquid].onLeaveState).Pointer())
+			reflect.ValueOf(config.states[liquid].leaveStateCb).Pointer())
 	})
 }
 

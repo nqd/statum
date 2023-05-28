@@ -52,14 +52,14 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 		return err
 	}
 
-	if err := f.config.states[currentState].onLeaveState(ctx, event); err != nil {
+	if err := f.config.states[currentState].leaveStateCb(ctx, event); err != nil {
 		return err
 	}
 
 	f.setCurrentState(transactionProp.toState)
 
 	// after move to next state, the callbacks sequence is: (c) enterState, (d) afterTransaction
-	if err := f.config.states[transactionProp.toState].onEnterState(ctx, event); err != nil {
+	if err := f.config.states[transactionProp.toState].enterStateCb(ctx, event); err != nil {
 		return err
 	}
 	if err := f.config.states[currentState].events[t].afterTransaction(ctx, event); err != nil {
