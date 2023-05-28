@@ -48,9 +48,9 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 	}
 
 	// within the current state, the callbacks sequence is: (a) beforeTransactionCb, (b) leaveState
-	if err := f.config.states[currentState].events[t].beforeTransactionCb(ctx, event); err != nil {
-		return err
-	}
+	//if err := f.config.states[currentState].events[t].beforeTransactionCb(ctx, event); err != nil {
+	//	return err
+	//}
 
 	if err := f.config.states[currentState].leaveStateCb(ctx, event); err != nil {
 		return err
@@ -62,9 +62,9 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 	if err := f.config.states[transactionProp.toState].enterStateCb(ctx, event); err != nil {
 		return err
 	}
-	if err := f.config.states[currentState].events[t].afterTransactionCb(ctx, event); err != nil {
-		return err
-	}
+	//if err := f.config.states[currentState].events[t].afterTransactionCb(ctx, event); err != nil {
+	//	return err
+	//}
 
 	return nil
 }

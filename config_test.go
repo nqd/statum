@@ -23,47 +23,28 @@ func TestNewStateMachineConfig(t *testing.T) {
 		condense transaction = "condense"
 	)
 
-	assertTranslationProperty := func(t *testing.T, t1 *translationProperty[state, transaction], t2 *translationProperty[state, transaction]) bool {
-		assert.Equal(t, t1.toState, t1.toState)
-		assertTwoFunsEqual(t, t1.afterTransactionCb, t2.afterTransactionCb)
-		assertTwoFunsEqual(t, t1.beforeTransactionCb, t2.beforeTransactionCb)
-
-		return true
-	}
-
 	t.Run("AddState WithPermit", func(t *testing.T) {
-		var cb1 Callback[state, transaction] = func(ctx context.Context, e *Event[state, transaction]) error { return nil }
-		cb2 := func(ctx context.Context, e *Event[state, transaction]) error { return nil }
-
 		config := NewStateMachineConfig[state, transaction]()
 		config.
 			AddState(liquid,
-				WithPermit(freeze, solid, cb1, nil),
-				WithPermit(vaporize, gas, nil, nil)).
+				WithPermit(freeze, solid),
+				WithPermit(vaporize, gas)).
 			AddState(gas,
-				WithPermit(condense, liquid, nil, cb2)).
+				WithPermit(condense, liquid)).
 			AddState(solid,
-				WithPermit(melt, liquid, nil, nil))
+				WithPermit(melt, liquid))
 
-		assertTranslationProperty(t, &translationProperty[state, transaction]{
-			toState:           liquid,
-			afterTransaction:  nilCallback[state, transaction],
-			beforeTransaction: nilCallback[state, transaction],
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: liquid,
 		}, config.states[solid].events[melt])
-		assertTranslationProperty(t, &translationProperty[state, transaction]{
-			toState:           gas,
-			afterTransaction:  nilCallback[state, transaction],
-			beforeTransaction: nilCallback[state, transaction],
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: gas,
 		}, config.states[liquid].events[vaporize])
-		assertTranslationProperty(t, &translationProperty[state, transaction]{
-			toState:           solid,
-			afterTransaction:  nilCallback[state, transaction],
-			beforeTransaction: cb1,
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: solid,
 		}, config.states[liquid].events[freeze])
-		assertTranslationProperty(t, &translationProperty[state, transaction]{
-			toState:           liquid,
-			afterTransaction:  cb2,
-			beforeTransaction: nilCallback[state, transaction],
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: liquid,
 		}, config.states[gas].events[condense])
 	})
 

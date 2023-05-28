@@ -63,21 +63,10 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 	return c
 }
 
-func WithPermit[S, T constraints.Ordered](t T, s S, beforeTransaction Callback[S, T], afterTransaction Callback[S, T]) StateOption[S, T] {
+func WithPermit[S, T constraints.Ordered](t T, s S) StateOption[S, T] {
 	return func(property *stateProperty[S, T]) {
-		btCb := beforeTransaction
-		if btCb == nil {
-			btCb = nilCallback[S, T]
-		}
-
-		atCb := afterTransaction
-		if atCb == nil {
-			atCb = nilCallback[S, T]
-		}
 		property.events[t] = &translationProperty[S, T]{
-			toState:             s,
-			beforeTransactionCb: btCb,
-			afterTransactionCb:  atCb,
+			toState: s,
 		}
 	}
 }

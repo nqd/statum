@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -30,7 +32,8 @@ func NewDoor(to string) *Door {
 		).
 		AddState(stateOpen,
 			statum.WithPermit(tranClose, stateClosed, nil, nil),
-		)
+		).
+		AddBeforeTransaction(cb)
 
 	fsm, err := statum.NewFSM(stateClosed, conf)
 	if err != nil {
