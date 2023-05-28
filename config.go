@@ -16,16 +16,16 @@ type Event[S, T constraints.Ordered] struct {
 
 type Config[S, T constraints.Ordered] struct {
 	states map[S]*stateProperty[S, T]
-	// adding beforeTransaction
-	// adding afterTransaction
+	// adding beforeTransactionCb
+	// adding afterTransactionCb
 	// adding enterState
 	// adding leaveState
 }
 
 type translationProperty[S, T constraints.Ordered] struct {
-	toState           S
-	afterTransaction  Callback[S, T]
-	beforeTransaction Callback[S, T]
+	toState             S
+	afterTransactionCb  Callback[S, T]
+	beforeTransactionCb Callback[S, T]
 }
 
 type stateProperty[S, T constraints.Ordered] struct {
@@ -75,9 +75,9 @@ func WithPermit[S, T constraints.Ordered](t T, s S, beforeTransaction Callback[S
 			atCb = nilCallback[S, T]
 		}
 		property.events[t] = &translationProperty[S, T]{
-			toState:           s,
-			beforeTransaction: btCb,
-			afterTransaction:  atCb,
+			toState:             s,
+			beforeTransactionCb: btCb,
+			afterTransactionCb:  atCb,
 		}
 	}
 }

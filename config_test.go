@@ -25,8 +25,8 @@ func TestNewStateMachineConfig(t *testing.T) {
 
 	assertTranslationProperty := func(t *testing.T, t1 *translationProperty[state, transaction], t2 *translationProperty[state, transaction]) bool {
 		assert.Equal(t, t1.toState, t1.toState)
-		assertTwoFunsEqual(t, t1.afterTransaction, t2.afterTransaction)
-		assertTwoFunsEqual(t, t1.beforeTransaction, t2.beforeTransaction)
+		assertTwoFunsEqual(t, t1.afterTransactionCb, t2.afterTransactionCb)
+		assertTwoFunsEqual(t, t1.beforeTransactionCb, t2.beforeTransactionCb)
 
 		return true
 	}
