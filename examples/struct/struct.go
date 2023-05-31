@@ -1,9 +1,8 @@
-//go:build ignore
-
 package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/nqd/statum"
@@ -26,24 +25,31 @@ type Door struct {
 }
 
 func NewDoor(to string) *Door {
+	d := &Door{
+		To: to,
+	}
+
 	conf := statum.NewStateMachineConfig[state, transaction]().
 		AddState(stateClosed,
-			statum.WithPermit(tranOpen, stateOpen, nil, nil),
+			statum.WithPermit(tranOpen, stateOpen),
 		).
 		AddState(stateOpen,
-			statum.WithPermit(tranClose, stateClosed, nil, nil),
-		).
-		AddBeforeTransaction(cb)
+			statum.WithPermit(tranClose, stateClosed),
+		).OnEnterAnyState(d.enterState)
 
 	fsm, err := statum.NewFSM(stateClosed, conf)
 	if err != nil {
 		log.Panicln("failed to create new fsm", err)
 	}
 
-	return &Door{
-		To:  to,
-		FSM: fsm,
-	}
+	d.FSM = fsm
+
+	return d
+}
+
+func (d *Door) enterState(_ context.Context, e *statum.Event[state, transaction]) error {
+	fmt.Printf("The door to %s is %s\n", d.To, e.Dst)
+	return nil
 }
 
 func main() {

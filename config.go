@@ -15,17 +15,14 @@ type Event[S, T constraints.Ordered] struct {
 }
 
 type Config[S, T constraints.Ordered] struct {
-	states map[S]*stateProperty[S, T]
-	// adding beforeTransactionCb
-	// adding afterTransactionCb
-	// adding enterState
-	// adding leaveState
+	states          map[S]*stateProperty[S, T]
+	enterAnyStateCb Callback[S, T]
+	leaveAnyStateCb Callback[S, T]
+	nilCb           Callback[S, T] // the nil function used for all nil callback
 }
 
 type translationProperty[S, T constraints.Ordered] struct {
-	toState             S
-	afterTransactionCb  Callback[S, T]
-	beforeTransactionCb Callback[S, T]
+	toState S
 }
 
 type stateProperty[S, T constraints.Ordered] struct {
@@ -40,8 +37,13 @@ type StateOption[S, T constraints.Ordered] func(property *stateProperty[S, T])
 
 func NewStateMachineConfig[S, T constraints.Ordered]() *Config[S, T] {
 	states := make(map[S]*stateProperty[S, T], 0)
+	nilCallback := nilCallback[S, T]
+
 	return &Config[S, T]{
-		states: states,
+		states:          states,
+		nilCb:           nilCallback,
+		enterAnyStateCb: nilCallback,
+		leaveAnyStateCb: nilCallback,
 	}
 }
 
@@ -50,8 +52,8 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 	if !found {
 		property = &stateProperty[S, T]{
 			events:       make(map[T]*translationProperty[S, T], 0),
-			leaveStateCb: nilCallback[S, T],
-			enterStateCb: nilCallback[S, T],
+			leaveStateCb: c.nilCb,
+			enterStateCb: c.nilCb,
 		}
 		c.states[s] = property
 	}
@@ -60,6 +62,16 @@ func (c *Config[S, T]) AddState(s S, opts ...StateOption[S, T]) *Config[S, T] {
 		opt(property)
 	}
 
+	return c
+}
+
+func (c *Config[S, T]) OnLeaveAnyState(f Callback[S, T]) *Config[S, T] {
+	c.leaveAnyStateCb = f
+	return c
+}
+
+func (c *Config[S, T]) OnEnterAnyState(f Callback[S, T]) *Config[S, T] {
+	c.enterAnyStateCb = f
 	return c
 }
 
