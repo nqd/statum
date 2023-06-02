@@ -3,7 +3,6 @@ package statum
 import (
 	"context"
 	"reflect"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -71,13 +70,4 @@ func TestNewStateMachineConfig(t *testing.T) {
 		assert.Equal(t, reflect.ValueOf(cb2).Pointer(),
 			reflect.ValueOf(config.states[liquid].leaveStateCb).Pointer())
 	})
-}
-
-func assertTwoFunsEqual(t *testing.T, func1, func2 interface{}) bool {
-	funcName1 := runtime.FuncForPC(reflect.ValueOf(func1).Pointer()).Name()
-	funcName2 := runtime.FuncForPC(reflect.ValueOf(func2).Pointer()).Name()
-
-	assert.Equal(t, funcName1, funcName2)
-
-	return true
 }
