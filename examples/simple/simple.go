@@ -22,7 +22,7 @@ func main() {
 		AddState(stateOpen, statum.WithPermit(tranClose, stateClosed)).
 		AddState(stateClosed, statum.WithPermit(tranOpen, stateOpen))
 
-	fsm, err := statum.NewFSM[state, transaction](stateOpen, config)
+	fsm, err := statum.NewFSM(stateOpen, config)
 	if err != nil {
 		log.Panicln("failed to create new fsm", err)
 	}

@@ -65,7 +65,7 @@ a. To add a callback en entering or exit a specific state:
 		)
 
 
-func (d *Door) enterOpenState(_ context.Context, e *statum.Event[state, transaction]) error {
+func (d *Door) enterOpenState(_ context.Context, e *statum.Event[state, transaction]) {
 	// will be called before FSM entering stateOpen state
 }
 
@@ -88,7 +88,7 @@ b. To add callbacks when entering/exit any state:
 		OnLeaveAnyState(d.leaveState)
 
 
-func (d *Door) enterState(_ context.Context, e *statum.Event[state, transaction]) error {
+func (d *Door) enterState(_ context.Context, e *statum.Event[state, transaction]) {
 	// will be called when FSM enter any state (stateOpen, stateClosed)
 }
 
