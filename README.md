@@ -31,7 +31,7 @@ func main() {
 		AddState(stateOpen, statum.WithPermit(tranClose, stateClosed)).
 		AddState(stateClosed, statum.WithPermit(tranOpen, stateOpen))
 
-	fsm, err := statum.NewFSM[state, transaction](stateOpen, config)
+	fsm, err := statum.NewFSM(stateOpen, config)
 	if err != nil {
 		log.Panicln("failed to create new fsm", err)
 	}
@@ -108,3 +108,7 @@ Any observer can cancel a transition by returning an error during any of the fol
 - leave any state (OnLeaveAnyState)
 
 Any subsequence registered callbacks will be cancelled and state will remain unchanged.
+
+## Export to DOT graph
+
+It can be useful to virtualize state machines from your code.
