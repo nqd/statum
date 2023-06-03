@@ -48,9 +48,8 @@ func TestNewStateMachineConfig(t *testing.T) {
 	})
 
 	t.Run("AddState WithOnEnterState", func(t *testing.T) {
-		var cb1 Callback[state, transaction] = func(ctx context.Context, e *Event[state, transaction]) error {
-			return nil
-		}
+		var cb1 CallbackNoReturn[state, transaction] = func(ctx context.Context, e *Event[state, transaction]) {}
+
 		config := NewStateMachineConfig[state, transaction]()
 		config.AddState(liquid,
 			WithOnEnterState(cb1))

@@ -35,7 +35,8 @@ func NewDoor(to string) *Door {
 		).
 		AddState(stateOpen,
 			statum.WithPermit(tranClose, stateClosed),
-		).OnEnterAnyState(d.enterState)
+		).
+		OnEnterAnyState(d.enterState)
 
 	fsm, err := statum.NewFSM(stateClosed, conf)
 	if err != nil {
@@ -47,9 +48,8 @@ func NewDoor(to string) *Door {
 	return d
 }
 
-func (d *Door) enterState(_ context.Context, e *statum.Event[state, transaction]) error {
+func (d *Door) enterState(_ context.Context, e *statum.Event[state, transaction]) {
 	fmt.Printf("The door to %s is %s\n", d.To, e.Dst)
-	return nil
 }
 
 func main() {

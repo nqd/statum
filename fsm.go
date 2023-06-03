@@ -3,6 +3,7 @@ package statum
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"golang.org/x/exp/constraints"
 )
@@ -13,6 +14,7 @@ var (
 )
 
 type FSM[S, T constraints.Ordered] struct {
+	mu           sync.RWMutex
 	currentState S
 	config       *Config[S, T]
 }
@@ -26,12 +28,16 @@ func NewFSM[S, T constraints.Ordered](initState S, config *Config[S, T]) (*FSM[S
 
 // Current returns the current fsm state
 func (f *FSM[S, T]) Current() S {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
 	return f.currentState
 }
 
 // Fire sends a transition trigger to fsm
 func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
+	f.mu.RLock()
 	currentState := f.currentState
+	f.mu.RUnlock()
 
 	events := f.config.states[currentState].events
 
@@ -63,19 +69,17 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 
 	f.setCurrentState(transactionProp.toState)
 
-	if err := f.config.states[transactionProp.toState].enterStateCb(ctx, event); err != nil {
-		return err
-	}
+	f.config.states[transactionProp.toState].enterStateCb(ctx, event)
 
-	if err := f.config.enterAnyStateCb(ctx, event); err != nil {
-		return err
-	}
+	f.config.enterAnyStateCb(ctx, event)
 
 	return nil
 }
 
 func (f *FSM[S, T]) setCurrentState(s S) {
+	f.mu.Lock()
 	f.currentState = s
+	f.mu.Unlock()
 }
 
 // SetState move fsm to given state, do not trigger any Callback
