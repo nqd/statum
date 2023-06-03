@@ -35,7 +35,11 @@ func NewDoor(to string) *Door {
 		).
 		AddState(stateOpen,
 			statum.WithPermit(tranClose, stateClosed),
-		).OnEnterAnyState(d.enterState)
+			statum.WithOnEnterState(d.enterOpenState),
+			statum.WithOnLeaveState(d.leaveOpenState),
+		).
+		OnEnterAnyState(d.enterState).
+		OnLeaveAnyState(d.leaveState)
 
 	fsm, err := statum.NewFSM(stateClosed, conf)
 	if err != nil {
