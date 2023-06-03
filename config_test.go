@@ -33,33 +33,41 @@ func TestNewStateMachineConfig(t *testing.T) {
 			AddState(solid,
 				WithPermit(melt, liquid))
 
-		assert.Equal(t, liquid, config.states[solid].events[melt])
-		assert.Equal(t, gas, config.states[liquid].events[vaporize])
-		assert.Equal(t, solid, config.states[liquid].events[freeze])
-		assert.Equal(t, liquid, config.states[gas].events[condense])
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: liquid,
+		}, config.states[solid].events[melt])
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: gas,
+		}, config.states[liquid].events[vaporize])
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: solid,
+		}, config.states[liquid].events[freeze])
+		assert.Equal(t, &translationProperty[state, transaction]{
+			toState: liquid,
+		}, config.states[gas].events[condense])
 	})
 
-	t.Run("AddState WithOnEnter", func(t *testing.T) {
+	t.Run("AddState WithOnEnterState", func(t *testing.T) {
 		var cb1 Callback[state, transaction] = func(ctx context.Context, e *Event[state, transaction]) error {
 			return nil
 		}
 		config := NewStateMachineConfig[state, transaction]()
 		config.AddState(liquid,
-			WithOnEnter(cb1))
+			WithOnEnterState(cb1))
 
 		assert.Equal(t, reflect.ValueOf(cb1).Pointer(),
-			reflect.ValueOf(config.states[liquid].onEnter).Pointer())
+			reflect.ValueOf(config.states[liquid].enterStateCb).Pointer())
 	})
 
-	t.Run("AddState WithOnLeave", func(t *testing.T) {
+	t.Run("AddState WithOnLeaveState", func(t *testing.T) {
 		var cb2 Callback[state, transaction] = func(ctx context.Context, e *Event[state, transaction]) error {
 			return nil
 		}
 		config := NewStateMachineConfig[state, transaction]()
 		config.AddState(liquid,
-			WithOnLeave(cb2))
+			WithOnLeaveState(cb2))
 
 		assert.Equal(t, reflect.ValueOf(cb2).Pointer(),
-			reflect.ValueOf(config.states[liquid].onLeave).Pointer())
+			reflect.ValueOf(config.states[liquid].leaveStateCb).Pointer())
 	})
 }
