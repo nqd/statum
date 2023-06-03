@@ -69,13 +69,9 @@ func (f *FSM[S, T]) Fire(ctx context.Context, t T) error {
 
 	f.setCurrentState(transactionProp.toState)
 
-	if err := f.config.states[transactionProp.toState].enterStateCb(ctx, event); err != nil {
-		return err
-	}
+	f.config.states[transactionProp.toState].enterStateCb(ctx, event)
 
-	if err := f.config.enterAnyStateCb(ctx, event); err != nil {
-		return err
-	}
+	f.config.enterAnyStateCb(ctx, event)
 
 	return nil
 }
